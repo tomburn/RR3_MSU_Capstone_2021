@@ -28,6 +28,8 @@ char pass[] = "";
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 //////////////////////////////////////////////END BLYNK/LIBRARY SETUP
 
+
+
 ////////// VARIABLES ///////////////
 
 float swing = 0.0; // create variable position for servo1 LEG position
@@ -43,8 +45,13 @@ int spd;    // Joystick Y position var - speed input
 int turn;   // Joystick X position var - turning input
 float sspd; // Servo speed Adjusted
 
+
 // SERVO
 Servo servo9; // Servo in channel 9 - name servo9
+//Servo servo9; // Servo in channel 9 - name servo9
+//Servo servo9; // Servo in channel 9 - name servo9
+//Servo servo9; // Servo in channel 9 - name servo9
+
 
 
 
@@ -57,8 +64,10 @@ BLYNK_WRITE(V10) {
   spd  = y-128;             // CENTER JOYSTICK AT 0,0
   turn = x-128;             // CENTER JOYSTICK AT 0,0
 
+}
 
-///////////// MOTION RESPONSE ////////////////
+void servomove (spd, turn) {
+ ///////////// MOTION RESPONSE ////////////////
   if (spd > 10){                        //FORWARD MOTION
   Serial.print("Forward Speed = ");
   Serial.print(spd);
@@ -215,10 +224,8 @@ BLYNK_WRITE(V10) {
       Serial.println(swing);
       prevMillis=currMillis; // update time 
       }
-    }*/
+    }*/ 
 }
-
-
 
 
 void setup()
@@ -239,4 +246,5 @@ void setup()
 void loop()
 {
   Blynk.run();
+  servomove();
 }
