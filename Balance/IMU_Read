@@ -1,0 +1,50 @@
+// This code may help the robot stay balanced
+// The first step is to ensure the IMU is processing things and can be zeroed appropriately. 
+// This is all basic code from the Arduino_LSM6DS3 Library
+
+#include <Arduino_LSM6DS3.h>
+
+   if (!IMU.begin()) {
+    Serial.println("Failed to initialize IMU!");
+    while (1);
+  }
+
+  // read IMU data …
+
+  // done with the IMU
+  IMU.end();
+  
+  // Read Acceleration: NOTE: Will return a 0 if no new acceleration data is available
+   float x, y, z;
+
+  if (IMU.accelerationAvailable()) {
+        IMU.readAcceleration(x, y, z);
+
+        Serial.print(x);
+        Serial.print('\t');
+        Serial.print(y);
+        Serial.print('\t');
+        Serial.println(z);
+  }
+}
+  Serial.print("Accelerometer sample rate = ");
+  Serial.print(IMU.accelerationSampleRate());
+  Serial.println(" Hz");
+  Serial.println();
+  Serial.println("Acceleration in G's");
+  Serial.println("X\tY\tZ");
+  
+  
+// Read Gyroscope:
+  float xg, yg, zg;
+
+  if (IMU.gyroscopeAvailable()) {
+        IMU.readGyroscope(xg, yg, zg);
+
+        Serial.print(xg);
+        Serial.print('\t');
+        Serial.print(yg);
+        Serial.print('\t');
+        Serial.println(zg);
+  }
+}
