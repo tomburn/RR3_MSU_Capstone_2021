@@ -2,6 +2,8 @@
 Code for Robot Rodeo 3 Capstone Project
 
 This code was developed by a series of copy paste commands from examples posted elsewhere. Appropriate citations will be added
+
+This repository was organized Nov.2.2021 11 weeks into the semester.
  
 If the code is a stand-alone void or other unique section, just save it as a separate file in the repository 
  
