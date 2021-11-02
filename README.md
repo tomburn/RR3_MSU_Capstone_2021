@@ -1,5 +1,7 @@
 # RR3
 Code for Robot Rodeo 3 Capstone Project
+
+This code was developed by a series of copy paste commands from examples posted elsewhere. Appropriate citations will be added
  
 If the code is a stand-alone void or other unique section, just save it as a separate file in the repository 
  
