@@ -42,6 +42,7 @@ float interval = 250; // 0.25 sec wait, will be overwritten
 
 unsigned long prevMillis = 0;
 unsigned long currMillis = 0;
+int n = 0; // counter variable
 
 // SERVO - Arduino Connections
 Servo servo9;  // Servo in channel 9 - name servo9
@@ -229,6 +230,17 @@ void servomove()
   
   else {
     Serial.println("Stopped");      // NO MOTION
-  }
+    n=n+1;
+    
+    if (n>100){         // No motion for a while, move legs back to neutral
+      if (swing != 90)
+          ext = 0;
+          Servo10.write(ext)
+          
+          swing = 0; 
+          Servo9.write(swing)
+      n=0;
+    }
+    }
   
 }
