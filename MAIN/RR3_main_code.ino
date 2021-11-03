@@ -1,40 +1,41 @@
-// BLYNK SETUP
-/* Comment this out to disable prints and save space */
+// SETUP
 #define BLYNK_PRINT Serial
 #define BLYNK_TEMPLATE_ID "TMPLR_TV2ZqB"
 #define BLYNK_DEVICE_NAME "servoposition"
 #define BLYNK_AUTH_TOKEN "x5Zz1cXycRID5c-svrTbuJH2nYknuuSM";
-
-/* Fill-in your Template ID (only if using Blynk.Cloud) */
 //#define BLYNK_TEMPLATE_ID   "TMPLR_TV2ZqB"
-
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <BlynkSimpleWiFiNINA.h>
 #include <Servo.h> 
 #include <math.h> 
-
-// You should get Auth Token in the Blynk App.
-// Go to the Project Settings (nut icon).
 char auth[] = "x5Zz1cXycRID5c-svrTbuJH2nYknuuSM";
-
-// Your WiFi credentials.
-// Set password to "" for open networks.
 //char ssid[] = "MSU-Guest";
 char pass[] = "";
-
 #include "arduino_secrets.h"
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//END BLYNK/LIBRARY SETUP
+// END SETUP
 
 
 
-////////// VARIABLES ///////////////
+// VARIABLES
 
-float swing = 0.0; // create variable position for servo1 LEG position
-float ext = 0.0; // create variable position for servo2 EXT position
+float swinglf = 0.0; // create variable position for left front LEG position
+float extlf = 0.0; // create variable position for left front EXT position
+
+float swingrf = 0.0; // create variable position for right front LEG position
+float extrf = 0.0; // create variable position for right front EXT position
+
+float swinglr = 0.0; // create variable position for left rear LEG position
+float extlr = 0.0; // create variable position for left rear EXT position
+
+float swingrr = 0.0; // create variable position for right rear LEG position
+float extrr = 0.0; // create variable position for right rear EXT position
+
+int spd;    // Joystick Y position var - speed input
+int turn;   // Joystick X position var - turning input
+float sspd; // Servo speed Adjusted
+
 //#define PI 3.14159265;
 
 float interval = 250; // 0.25 sec wait, will be overwritten
@@ -42,11 +43,7 @@ float interval = 250; // 0.25 sec wait, will be overwritten
 unsigned long prevMillis = 0;
 unsigned long currMillis = 0;
 
-int spd;    // Joystick Y position var - speed input
-int turn;   // Joystick X position var - turning input
-float sspd; // Servo speed Adjusted
-
-// SERVO
+// SERVO - Arduino Connections
 Servo servo9;  // Servo in channel 9 - name servo9
 Servo servo10; // Servo in channel 10 - name servo10
 
@@ -76,6 +73,9 @@ void setup()
 
   servo9.attach(9, 544, 2420); // SWING attach to pin 9 
   servo10.attach(10, 544, 2420); // EXT attach to pin 10
+  
+  servo9.write(90)
+  servo10.write(90)
 
 }
 
