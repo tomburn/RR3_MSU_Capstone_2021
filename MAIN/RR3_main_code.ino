@@ -9,14 +9,33 @@
 #include <BlynkSimpleWiFiNINA.h>
 #include <Servo.h> 
 #include <math.h> 
+#include <Wire.h> //https://www.arduino.cc/en/reference/wire
+#include <Adafruit_PWMServoDriver.h> //https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library
+
 char auth[] = "x5Zz1cXycRID5c-svrTbuJH2nYknuuSM";
 //char ssid[] = "MSU-Guest";
 char pass[] = "";
 #include "arduino_secrets.h"
 char ssid[] = SECRET_SSID;        // your network SSID (name)
-// END SETUP
 
 
+// BREAKOUT BOARD
+
+#define nbPCAServo 1
+//Parameters
+int MIN_IMP [nbPCAServo] ={544}//, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
+int MAX_IMP [nbPCAServo] ={2420}//, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500};
+int MIN_ANG [nbPCAServo] ={0}//, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int MAX_ANG [nbPCAServo] ={180}//, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180};
+//Objects
+Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
+void setup(){
+//Init Serial USB
+Serial.begin(9600);
+Serial.println(F("Initialize System"));
+pca.begin();
+pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+}
 
 // VARIABLES
 
@@ -61,7 +80,7 @@ BLYNK_WRITE(V10) {
 
 
 
-
+// SETUP FUNCTION 
 void setup()
 {
   // Debug console
@@ -72,25 +91,34 @@ void setup()
   Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
   //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
 
+  
+// Basic Servo (EVENTUALLY WILL BE REMOVED)
   servo9.attach(9, 544, 2420); // SWING attach to pin 9 
   servo10.attach(10, 544, 2420); // EXT attach to pin 10
   
   servo9.write(90)
   servo10.write(90)
+    
+// PCA SETUP
+// Serial.println(F("Initialize System")); I DONT THINK THIS IS NEEDED, CHECK FUNCTIONALITY WITH THIS COMMENTED OUT
+pca.begin();
+pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 
 }
 
 
-void loop()
+void loop() // MAIN LOOP
 {
-  Blynk.run();
+  Blynk.run(); // Consider making this an interrupt statement? It already runs as one kinda, only putting out new values when the input changes
   servomove();
 }
 
-void servomove()
+
+
+void servomove() // SERVO LOOP
 {
   ///////////// MOTION RESPONSE ////////////////
-  if (spd > 10){                        //FORWARD MOTION
+  if (spd > 20){                        //FORWARD MOTION
   Serial.print("Forward Speed = ");
   Serial.print(spd);
   
@@ -102,7 +130,7 @@ void servomove()
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-         sspd = spd*spd*0.001;              // Adjusted Servo Speed
+         ssspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
          for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
                  
               if (swing <= 90) {                        // Split EXT Servo into step chunks
@@ -111,8 +139,7 @@ void servomove()
               else {
               ext= 135-(swing-90);                     // EXT for step sequence  
               }
-             servo9.write(swing);
-             servo10.write(ext);
+
              
          }
          for (swing = 135; swing >= 45; swing -= sspd) { // SERVO POSITION CHANGE SWING LOOP
@@ -124,14 +151,13 @@ void servomove()
              else {
              ext= 180+2*(swing-90);                           // EXT for swing sequence
              }
-             servo9.write(swing);
-             servo10.write(ext);
+
          }
          prevMillis=currMillis; // update time 
       //}
     
     }
-    else if (turn < -10){                // LEFT TURN
+    else if (turn < -20){                // LEFT TURN
       Serial.print("Left");
       Serial.print(turn);
       Serial.println(" ");
@@ -140,8 +166,8 @@ void servomove()
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-         sspd = 1; //spd*spd*0.001;              // Adjusted Servo Speed
-         for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
+      sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
+      for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
              //servo9.write(swing);                    // tell servo to go to position in variable 'swing'
              if (swing <= 90) {                        // Split EXT Servo into step chunks
              ext= swing+45;                            // EXT for step squence
@@ -149,8 +175,7 @@ void servomove()
              else {
              ext= 135-(swing-90);                     // EXT for step sequence  
              }
-             servo9.write(swing);
-             servo10.write(ext);
+
          }
          for (swing = 135; swing >= 45; swing -= sspd) { // SERVO POSITION CHANGE SWING LOOP
              //servo9.write(swing);              // tell servo to go to position in variable 'swing'
@@ -161,8 +186,7 @@ void servomove()
              else {
              ext= 180+2*(swing-90);                           // EXT for swing sequence
              }
-             servo9.write(swing);
-             servo10.write(ext);
+
          }
          prevMillis=currMillis; // update time 
       //}
@@ -174,17 +198,27 @@ void servomove()
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-         sspd = spd*spd*0.001;              // Adjusted Servo Speed
+         sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
          for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
              //servo9.write(swing);                    // tell servo to go to position in variable 'swing'
              if (swing <= 90) {                        // Split EXT Servo into step chunks
              ext= swing+45;                            // EXT for step squence
+               
+               //PCA Commands
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
+               pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
              }
              else {
              ext= 135-(swing-90);                     // EXT for step sequence  
              }
-             servo9.write(swing);
-             servo10.write(ext);
+           
+                          //PCA Commands
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
+               pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
              
          }
          for (swing = 135; swing >= 45; swing -= sspd) { // SERVO POSITION CHANGE SWING LOOP
@@ -196,8 +230,7 @@ void servomove()
              else {
              ext= 180+2*(swing-90);                           // EXT for swing sequence
              }
-             servo9.write(swing);
-             servo10.write(ext);
+
              Serial.println(swing);
          }
          prevMillis=currMillis; // update time 
@@ -206,17 +239,17 @@ void servomove()
   }
  
   
-  else if (spd < -10) {                   // BACKWARD MOTION
+  else if (spd < -20) {                   // BACKWARD MOTION
    Serial.print("Backward Speed = ");
   Serial.print(spd);
   Serial.println(" ");
   
-    if (turn > 10){
+    if (turn > 20){
       Serial.print("Right");
       Serial.print(turn);
       Serial.println(" ");
     }
-    else if (turn < -10){
+    else if (turn < -20){
       Serial.print("Left");
       Serial.print(turn);
       Serial.println(" ");
@@ -234,11 +267,19 @@ void servomove()
     
     if (n>100){         // No motion for a while, move legs back to neutral
       if (swing != 90)
-          ext = 0;
-          Servo10.write(ext)
+          ext = 90;
+                         //PCA Commands
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
+               pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
           
-          swing = 0; 
-          Servo9.write(swing)
+          swing = 90; 
+                         //PCA Commands
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
+               pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
       n=0;
     }
     }
