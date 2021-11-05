@@ -23,21 +23,21 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 
 #define nbPCAServo 1
 //Parameters
-int MIN_IMP [nbPCAServo] ={544}//, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
-int MAX_IMP [nbPCAServo] ={2420}//, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500};
-int MIN_ANG [nbPCAServo] ={0}//, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int MAX_ANG [nbPCAServo] ={180}//, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180};
+int MIN_IMP [nbPCAServo] ={544};//, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
+int MAX_IMP [nbPCAServo] ={2420};//, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500};
+int MIN_ANG [nbPCAServo] ={0};//, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int MAX_ANG [nbPCAServo] ={180};//, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180};
 //Objects
 Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
-void setup(){
-//Init Serial USB
-Serial.begin(9600);
-Serial.println(F("Initialize System"));
-pca.begin();
-pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
-}
+
 
 // VARIABLES
+
+// GLOBAL TO BE REMOVED:
+float swing;
+float ext; 
+int spos;
+int epos;
 
 float swinglf = 0.0; // create variable position for left front LEG position
 float extlf = 0.0; // create variable position for left front EXT position
@@ -96,8 +96,8 @@ void setup()
   servo9.attach(9, 544, 2420); // SWING attach to pin 9 
   servo10.attach(10, 544, 2420); // EXT attach to pin 10
   
-  servo9.write(90)
-  servo10.write(90)
+  servo9.write(90);
+  servo10.write(90);
     
 // PCA SETUP
 // Serial.println(F("Initialize System")); I DONT THINK THIS IS NEEDED, CHECK FUNCTIONALITY WITH THIS COMMENTED OUT
@@ -130,7 +130,7 @@ void servomove() // SERVO LOOP
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-         ssspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
+         sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
          for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
                  
               if (swing <= 90) {                        // Split EXT Servo into step chunks
@@ -205,8 +205,8 @@ void servomove() // SERVO LOOP
              ext= swing+45;                            // EXT for step squence
                
                //PCA Commands
-               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
-               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP);
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP);
                pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
                pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
              }
@@ -215,8 +215,8 @@ void servomove() // SERVO LOOP
              }
            
                           //PCA Commands
-               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
-               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP);
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP);
                pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
                pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
              
@@ -269,15 +269,15 @@ void servomove() // SERVO LOOP
       if (swing != 90)
           ext = 90;
                          //PCA Commands
-               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
-               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP);
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP);
                pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
                pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
           
           swing = 90; 
                          //PCA Commands
-               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP)
-               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP)
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP);
+               epos = map(ext,   0, 180, MIN_IMP, MAX_IMP);
                pca.writeMicroseconds(1,spos); // Swing servo position write to PCA
                pca.writeMicroseconds(2,epos); // Extension servo position write to PCA
       n=0;
