@@ -55,7 +55,7 @@ float extrr = 0.0; // create variable position for right rear EXT position
 
 int spd;    // Joystick Y position var - speed input
 int turn;   // Joystick X position var - turning input
-float sspd; // Servo speed Adjusted
+int sspd; // Servo speed Adjusted, int because map() outputs ints
 int spos; // Start position
 
 //#define PI 3.14159265;
@@ -133,7 +133,7 @@ void servomove() // SERVO LOOP
 {
   ///////////// MOTION RESPONSE ////////////////
   if (spd > 20){                        //FORWARD MOTION
-  Serial.print("Forward Speed = ");
+  Serial.print("Input Forward Speed = ");
   Serial.print(spd);
   
   /*  
@@ -213,12 +213,11 @@ void servomove() // SERVO LOOP
       Serial.println("Straight");
 
                                         // SERVO CONTROL SECTION
-      currMillis = millis();
-      //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
-      //while (currMillis - prevMillis >= interval == true) {
+      
          sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
-         for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
-             //servo9.write(swing);                    // tell servo to go to position in variable 'swing'
+
+       for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
+             
              if (swing <= 90) {                        // Split EXT Servo into step chunks
              ext= swing+45;                            // EXT for step squence
                
@@ -251,8 +250,8 @@ void servomove() // SERVO LOOP
 
              Serial.println(swing);
          }
-         prevMillis=currMillis; // update time 
-      //}
+         
+     
     }
   }
  
