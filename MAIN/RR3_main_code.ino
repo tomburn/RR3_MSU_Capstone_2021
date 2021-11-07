@@ -22,23 +22,25 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 // BREAKOUT BOARD
 
 #define nbPCAServo 1
+
 //Parameters
-int MIN_IMP [nbPCAServo] ={544};//, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};
-int MAX_IMP [nbPCAServo] ={2420};//, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500};
-int MIN_ANG [nbPCAServo] ={0};//, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int MAX_ANG [nbPCAServo] ={180};//, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180};
+int MIN_IMP [nbPCAServo] ={544};
+int MAX_IMP [nbPCAServo] ={2420};
+int MIN_ANG [nbPCAServo] ={0};
+int MAX_ANG [nbPCAServo] ={180};
+
 //Objects
 Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
 
 
 // VARIABLES
-
+int i = 0; // Servo Index
 // GLOBAL TO BE REMOVED:
 float swing;
 float ext; 
-int spos;
+// int spos;
 int epos;
-
+// SPECIFIC TO REPLACE GLOBAL
 float swinglf = 0.0; // create variable position for left front LEG position
 float extlf = 0.0; // create variable position for left front EXT position
 
@@ -54,6 +56,7 @@ float extrr = 0.0; // create variable position for right rear EXT position
 int spd;    // Joystick Y position var - speed input
 int turn;   // Joystick X position var - turning input
 float sspd; // Servo speed Adjusted
+int spos; // Start position
 
 //#define PI 3.14159265;
 
@@ -103,6 +106,17 @@ void setup()
 // Serial.println(F("Initialize System")); I DONT THINK THIS IS NEEDED, CHECK FUNCTIONALITY WITH THIS COMMENTED OUT
 pca.begin();
 pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+  
+  // Set all servos to midpoints
+  for(i > 8){
+               //PCA Commands
+               spos=90; // Start position
+               spos = map(swing, 0, 180, MIN_IMP, MAX_IMP);
+               pca.writeMicroseconds(i,spos); // Swing servo position write to PCA
+           i=i+1;    
+              
+  }
+    i=0;
 
 }
 
@@ -122,7 +136,8 @@ void servomove() // SERVO LOOP
   Serial.print("Forward Speed = ");
   Serial.print(spd);
   
-    if (turn > 20){                     // RIGHT TURN
+  /*  
+  if (turn > 20){                     // RIGHT TURN
       Serial.print("Right");
       Serial.print(turn);
       Serial.println(" ");
@@ -192,6 +207,9 @@ void servomove() // SERVO LOOP
       //}
     }
     else {                                     // STRAIGHT
+    
+    */
+    
       Serial.println("Straight");
 
                                         // SERVO CONTROL SECTION
