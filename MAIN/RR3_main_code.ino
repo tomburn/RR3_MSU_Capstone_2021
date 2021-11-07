@@ -62,8 +62,8 @@ int spos; // Start position
 
 float interval = 250; // 0.25 sec wait, will be overwritten
 
-unsigned long prevMillis = 0;
-unsigned long currMillis = 0;
+unsigned long start_ms = 0;
+unsigned long new_ms = 0;
 int n = 0; // counter variable
 
 // SERVO - Arduino Connections
@@ -210,11 +210,14 @@ void servomove() // SERVO LOOP
     
     */
     
+    start_ms = millis();
+    new_ms = start_ms();
+    while (new_ms - start_ms) < interval {
       Serial.println("Straight");
 
                                         // SERVO CONTROL SECTION
       
-         sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
+         sspd = map(spd, 20, 128, 0, 60);              // Adjusted Servo Speed: linear map 0 to 60
 
        for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
              
@@ -250,8 +253,8 @@ void servomove() // SERVO LOOP
 
              Serial.println(swing);
          }
-         
-     
+         new_ms=millis();
+    }
     }
   }
  
