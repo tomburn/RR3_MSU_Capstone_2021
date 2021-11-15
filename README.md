@@ -10,7 +10,7 @@ If the code is a stand-alone void or other unique section, just save it as a sep
 
 
  
-Currently the Arduino.ide is not liked to github so the workflow is as follows:
+Currently the Arduino.ide is not linked to github so the workflow is as follows:
 1. Download initial code from github repository
 2. Edit as needed 
 3. Upload edited code as a fork with changes into a folder if applicable
