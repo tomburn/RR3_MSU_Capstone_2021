@@ -35,6 +35,7 @@ Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
 int i = 0; // Servo Index
 
 // SPECIFIC TO REPLACE GLOBAL 
+int spos= 90; // Start position 90 deg for all legs
 int swinglf = 0; // create variable position for left front LEG position
 int extlf   = 0; // create variable position for left front EXT position
 int swingrf = 0; // create variable position for right front LEG position
@@ -43,6 +44,10 @@ int swinglr = 0; // create variable position for left rear LEG position
 int extlr   = 0; // create variable position for left rear EXT position
 int swingrr = 0; // create variable position for right rear LEG position
 int extrr   = 0; // create variable position for right rear EXT position
+
+// These need to stay until the map gets better
+int swing;
+int ext;
 
 
 long int spd;    // Joystick Y position var - speed input
@@ -94,7 +99,7 @@ pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
                //while (new_ms - start_ms <= interval == true) {
                 spos = map(90, 0, 180, 544, 2420);
                 pca.writeMicroseconds(i,spos); // Swing servo position write to PCA
-                for (n=0; n<1000; n++);{}
+                for (n=0; n<interval; n++);{}
                 i=i+1;    
                 //new_ms = millis();
                
@@ -197,49 +202,49 @@ void servomove() // SERVO LOOP
                                         // SERVO CONTROL SECTION
       
 
-       for (swing = 45; swing <= 135; swing += 10) { // SERVO POSITION CHANGE STEP LOOP
+       for (swing = 45; swing <= 135; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
              
              if (swing <= 90) {                        // Split EXT Servo into step chunks
              ext= swing+45;                            // EXT for step squence
                
                //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
-             for (n=0; n<1000; n++);{}
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
+             for (n=0; n<interval; n++);{}
              }
              else {
              ext= 135-(swing-90);                     // EXT for step sequence  
              }
            
-                          //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
-         for (n=0; n<1000; n++);{}    
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
+         for (n=0; n<interval; n++);{}    
          }
-         for (swing = 135; swing >= 45; swing -= 10) { // SERVO POSITION CHANGE SWING LOOP
+         for (swing = 135; swing >= 45; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP
              //servo9.write(swing);              // tell servo to go to position in variable 'swing'
              
              if (swing >= 90) {                         // Split EXT Servo into step chunks
              ext= 90+2*(-swing-135);                    // EXT for swing squence
-                        //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
-         for (n=0; n<1000; n++);{}  
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
+         for (n=0; n<interval; n++);{}  
              }
              else {
              ext= 180+2*(swing-90);                           // EXT for swing sequence
-                        //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
-         for (n=0; n<1000; n++);{}  
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
+         for (n=0; n<interval; n++);{}  
              }
 
              
