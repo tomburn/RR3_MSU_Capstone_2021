@@ -1,9 +1,9 @@
 // SETUP
+
 #define BLYNK_PRINT Serial
 #define BLYNK_TEMPLATE_ID "TMPLR_TV2ZqB"
 #define BLYNK_DEVICE_NAME "servoposition"
 #define BLYNK_AUTH_TOKEN "x5Zz1cXycRID5c-svrTbuJH2nYknuuSM";
-//#define BLYNK_TEMPLATE_ID   "TMPLR_TV2ZqB"
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <BlynkSimpleWiFiNINA.h>
@@ -33,42 +33,39 @@ Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
 
 // VARIABLES
 int i = 0; // Servo Index
-// GLOBAL TO BE REMOVED:
-int swing;
-int ext; 
-long int spos; 
-long int epos;
-/* SPECIFIC TO REPLACE GLOBAL 
-float swinglf = 0.0; // create variable position for left front LEG position
-float extlf = 0.0; // create variable position for left front EXT position
-float swingrf = 0.0; // create variable position for right front LEG position
-float extrf = 0.0; // create variable position for right front EXT position
-float swinglr = 0.0; // create variable position for left rear LEG position
-float extlr = 0.0; // create variable position for left rear EXT position
-float swingrr = 0.0; // create variable position for right rear LEG position
-float extrr = 0.0; // create variable position for right rear EXT position
-*/
+
+// SPECIFIC TO REPLACE GLOBAL 
+int swinglf = 0; // create variable position for left front LEG position
+int extlf   = 0; // create variable position for left front EXT position
+int swingrf = 0; // create variable position for right front LEG position
+int extrf   = 0; // create variable position for right front EXT position
+int swinglr = 0; // create variable position for left rear LEG position
+int extlr   = 0; // create variable position for left rear EXT position
+int swingrr = 0; // create variable position for right rear LEG position
+int extrr   = 0; // create variable position for right rear EXT position
+
 
 long int spd;    // Joystick Y position var - speed input
 long int turn;   // Joystick X position var - turning input
-long int sspd; // Servo speed Adjusted, int because map() outputs ints
+long int adjspd;   // Servo speed Adjusted, int because map() outputs ints
 
 
-float interval = 2000; // 2 sec wait, will be overwritten
+int interval = 2000; // 2 sec wait, will be overwritten
 
-unsigned long start_ms = 0;
-unsigned long new_ms = 0;
+unsigned long start_ms;
+unsigned long new_ms;
 volatile int n; // counter variable
 
 
-////////////////// BLYNK CODE ///////////////////
+// BLYNK CODE
 BLYNK_WRITE(V10) {
   
-  ///////////// JOYSTICK INPUTS ///////////////////////
+// JOYSTICK INPUTS 
   int x = param[0].asInt(); //BLYNK INPUTS FROM JOYSTICK
   int y = param[1].asInt(); 
   spd  = y-128;             // CENTER JOYSTICK AT 0,0
   turn = x-128;             // CENTER JOYSTICK AT 0,0
+  adjspd = map(spd, 20, 128, 0, 20);
 }
 
 
@@ -134,8 +131,7 @@ void servomove() // SERVO LOOP
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-         sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
-         for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
+              for (swing = 45; swing <= 135; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
                  
               if (swing <= 90) {                        // Split EXT Servo into step chunks
               ext= swing+45;                            // EXT for step squence
@@ -145,7 +141,7 @@ void servomove() // SERVO LOOP
               }
              
          }
-         for (swing = 135; swing >= 45; swing -= sspd) { // SERVO POSITION CHANGE SWING LOOP
+         for (swing = 135; swing >= 45; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP
              //servo9.write(swing);              // tell servo to go to position in variable 'swing'
              
              if (swing >= 90) {                         // Split EXT Servo into step chunks
@@ -167,8 +163,7 @@ void servomove() // SERVO LOOP
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
       //while (currMillis - prevMillis >= interval == true) {
-      sspd = map(spd, 20, 128, 0, 100);              // Adjusted Servo Speed: linear map 0 to 100
-      for (swing = 45; swing <= 135; swing += sspd) { // SERVO POSITION CHANGE STEP LOOP
+      for (swing = 45; swing <= 135; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
              //servo9.write(swing);                    // tell servo to go to position in variable 'swing'
              if (swing <= 90) {                        // Split EXT Servo into step chunks
              ext= swing+45;                            // EXT for step squence
@@ -177,7 +172,7 @@ void servomove() // SERVO LOOP
              ext= 135-(swing-90);                     // EXT for step sequence  
              }
          }
-         for (swing = 135; swing >= 45; swing -= sspd) { // SERVO POSITION CHANGE SWING LOOP
+         for (swing = 135; swing >= 45; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP
              //servo9.write(swing);              // tell servo to go to position in variable 'swing'
              
              if (swing >= 90) {                         // Split EXT Servo into step chunks
@@ -201,7 +196,6 @@ void servomove() // SERVO LOOP
 
                                         // SERVO CONTROL SECTION
       
-         sspd = map(spd, 20, 128, 0, 60);              // Adjusted Servo Speed: linear map 0 to 60
 
        for (swing = 45; swing <= 135; swing += 10) { // SERVO POSITION CHANGE STEP LOOP
              
