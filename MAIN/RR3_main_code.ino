@@ -81,32 +81,23 @@ void setup()
   Serial.begin(9600);
 
   //Blynk.begin(auth, ssid, pass);
-  // You can also specify server:
   Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
-  //Blynk.begin(auth, ssid, pass, IPAddress(192,168,1,100), 8080);
     
-// PCA SETUP
-pca.begin();
-pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+  // PCA SETUP
+  pca.begin();
+  pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
   
   // Set all servos to start position
+  spos = map(90, 0, 180, 544, 2420);
   for (i=0; i < nbPCAServo; i++);{
                //PCA Commands
                Serial.print("Startup interval ");
                Serial.println(i);
-               //start_ms = millis();
-               //new_ms = start_ms;
-               //while (new_ms - start_ms <= interval == true) {
-                spos = map(90, 0, 180, 544, 2420);
-                pca.writeMicroseconds(i,spos); // Swing servo position write to PCA
-                for (n=0; n<interval; n++);{}
-                i=i+1;    
-                //new_ms = millis();
-               
-               }
-               pca.setPin(i,0,true); // Deactivate Pin i
-              
-  
+               pca.writeMicroseconds(i,spos); // Swing servo position write to PCA
+               for (n=0; n<interval; n++);{}  // Wait loop
+               pca.setPin(i,0,true);          // Deactivate Pin i
+               i=i+1; 
+  }
     i=0; // Reset i to start position after sweeping through each servo. 
 }
 
@@ -114,7 +105,7 @@ pca.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 
 void loop() // MAIN LOOP
 {
-  Blynk.run(); // Consider making this an interrupt statement? It already runs as one kinda, only putting out new values when the input changes
+  Blynk.run();
   servomove();
 }
 
@@ -190,67 +181,65 @@ void servomove() // SERVO LOOP
          prevMillis=currMillis; // update time 
       //}
     }
-    else {                                     // STRAIGHT
+    else {
+    // STRAIGHT
     
-    */
-    
-    //start_ms = millis();
-    //new_ms = start_ms;
-    //while ((new_ms - start_ms) < interval) {
+      */
       Serial.println("Straight");
 
-                                        // SERVO CONTROL SECTION
+    // SERVO CONTROL SECTION
       
 
        for (swing = 45; swing <= 135; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
              
-             if (swing <= 90) {                        // Split EXT Servo into step chunks
-             ext= swing+45;                            // EXT for step squence
+             if (swing <= 90) {                          // Split EXT Servo into step chunks
+               ext= swing+45;                            // EXT for step squence
+               
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               for (n=0; n<interval; n++);{}             // Delay loop
+              }
+             
+              else {
+               ext= 135-(swing-90);                      // EXT for step sequence  
                
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
                pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
                pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
-             for (n=0; n<interval; n++);{}
-             }
-             else {
-             ext= 135-(swing-90);                     // EXT for step sequence  
+               for (n=0; n<interval; n++);{}             // Delay loop
              }
            
-               //PCA Commands
-               swinglf = map(swing, 0, 180, 544, 2420);
-               extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
-         for (n=0; n<interval; n++);{}    
+               
          }
          for (swing = 135; swing >= 45; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP
-             //servo9.write(swing);              // tell servo to go to position in variable 'swing'
+             //servo9.write(swing);                     // tell servo to go to position in variable 'swing'
              
              if (swing >= 90) {                         // Split EXT Servo into step chunks
              ext= 90+2*(-swing-135);                    // EXT for swing squence
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
-         for (n=0; n<interval; n++);{}  
+               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               for (n=0; n<interval; n++);{}             // Delay loop
              }
              else {
-             ext= 180+2*(swing-90);                           // EXT for swing sequence
+               ext= 180+2*(swing-90);                    // EXT for swing sequence
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
-         for (n=0; n<interval; n++);{}  
+               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               for (n=0; n<interval; n++);{}             // Delay loop
              }
 
              
          }
-    //     new_ms=millis();
-    //}
     }
   
  
