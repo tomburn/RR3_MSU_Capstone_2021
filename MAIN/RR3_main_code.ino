@@ -284,18 +284,18 @@ void servomove() // SERVO LOOP
     if (n>100){         // No motion for a while, move legs back to neutral
       if (swing != 90)
           ext = 90;
-                         //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
           
           swing = 90; 
-                         //PCA Commands
-               spos = map(swing, 0, 180, 544, 2420);
-               epos = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,spos); // Swing servo position write to PCA
-               pca.writeMicroseconds(1,epos); // Extension servo position write to PCA
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+               pca.writeMicroseconds(0,swinglf); // Swing servo position write to PCA
+               pca.writeMicroseconds(1,extlf); // Extension servo position write to PCA
       n=0;
     }
     }
