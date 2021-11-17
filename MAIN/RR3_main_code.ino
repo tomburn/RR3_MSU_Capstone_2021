@@ -18,24 +18,30 @@ char pass[] = "";
 #include "arduino_secrets.h"
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 
-
 // BREAKOUT BOARD
-
 #define nbPCAServo 8 // The number of servos
-
 //Parameters
 int MIN_IMP [nbPCAServo] ={544, 544, 544, 544, 544, 544, 544, 544};
 int MAX_IMP [nbPCAServo] ={2420, 2420, 2420, 2420, 2420, 2420, 2420, 2420};
-
 //Objects
 Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
+
+// Constants
+const int spos= 90; // Start position 90 deg for all legs
+const int dead_fwd   = 20; // Joystick Deadzone
+const int dead_back  = -20;
+const int dead_left  = -20;
+const int dead_right = 20;
+
+const int swing_max = 135; // Maximum Swing Servo Position
+const int swing_min = 45;  // Minimum Swing Servo Position
+const int ext_max   = 180; // Mximum Extension Servo Position
+const int ext_min   = 45;  // Minimum Extension Servo Position
 
 
 // VARIABLES
 int i = 0; // Servo Index
-
 // SPECIFIC TO REPLACE GLOBAL 
-int spos= 90; // Start position 90 deg for all legs
 int swinglf = 0; // create variable position for left front LEG position
 int extlf   = 0; // create variable position for left front EXT position
 int swingrf = 0; // create variable position for right front LEG position
@@ -49,18 +55,15 @@ int extrr   = 0; // create variable position for right rear EXT position
 int swing;
 int ext;
 
-
-long int spd;    // Joystick Y position var - speed input
-long int turn;   // Joystick X position var - turning input
-long int adjspd;   // Servo speed Adjusted, int because map() outputs ints
-
+int spd;    // Joystick Y position var - speed input
+int turn;   // Joystick X position var - turning input
+int adjspd;   // Servo speed Adjusted, int because map() outputs ints
 
 int interval = 2000; // 2 sec wait, will be overwritten
 
 unsigned long start_ms;
 unsigned long new_ms;
 volatile int n; // counter variable
-
 
 // BLYNK CODE
 BLYNK_WRITE(V10) {
@@ -113,16 +116,12 @@ void loop() // MAIN LOOP
 
 void servomove() // SERVO LOOP
 {
-  ///////////// MOTION RESPONSE ////////////////
-  if (spd > 20){                        //FORWARD MOTION
-  Serial.print("Input Forward Speed = ");
-  Serial.print(spd);
+  if (spd > dead_fwd){                        //FORWARD MOTION
+  Serial.print("Forward");
   
   /*  
-  if (turn > 20){                     // RIGHT TURN
+  if (turn > dead_right){                     // RIGHT TURN
       Serial.print("Right");
-      Serial.print(turn);
-      Serial.println(" ");
                                         // SERVO CONTROL SECTION
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
@@ -151,10 +150,8 @@ void servomove() // SERVO LOOP
       //}
     
     }
-    else if (turn < -20){                // LEFT TURN
+    else if (turn < dead_left){                // LEFT TURN
       Serial.print("Left");
-      Serial.print(turn);
-      Serial.println(" ");
                   // SERVO CONTROL SECTION
       currMillis = millis();
       //interval=(256.0/spd) * 250;     // Time length relative to 0.25 second
@@ -182,15 +179,15 @@ void servomove() // SERVO LOOP
       //}
     }
     else {
-    // STRAIGHT
+    // STRAIGHT     
+*/
     
-      */
       Serial.println("Straight");
 
     // SERVO CONTROL SECTION
       
 
-       for (swing = 45; swing <= 135; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
+       for (swing = swing_min; swing <= swing_max; swing += adjspd) { // SERVO POSITION CHANGE STEP LOOP
              
              if (swing <= 90) {                          // Split EXT Servo into step chunks
                ext= swing+45;                            // EXT for step squence
@@ -216,11 +213,9 @@ void servomove() // SERVO LOOP
            
                
          }
-         for (swing = 135; swing >= 45; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP
-             //servo9.write(swing);                     // tell servo to go to position in variable 'swing'
-             
+         for (swing = swing_max; swing >= swing_min; swing -= adjspd) { // SERVO POSITION CHANGE SWING LOOP    
              if (swing >= 90) {                         // Split EXT Servo into step chunks
-             ext= 90+2*(-swing-135);                    // EXT for swing squence
+               ext= 90+2*(-swing-135);                    // EXT for swing squence
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
@@ -244,7 +239,7 @@ void servomove() // SERVO LOOP
   
  
   
-  else if (spd < -20) {                   // BACKWARD MOTION
+  else if (spd < dead_back) {                   // BACKWARD MOTION
    Serial.print("Backward Speed = ");
   Serial.print(spd);
   Serial.println(" ");
