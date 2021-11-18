@@ -32,13 +32,13 @@ Adafruit_PWMServoDriver pca= Adafruit_PWMServoDriver(0x40);
 const int spos= 90; // Start position 90 deg for all legs
 const int dead_fwd   = 20; // Joystick Deadzone
 const int dead_back  = -20;
-const int dead_left  = -20;
-const int dead_right = 20;
+const int dead_left  = -30;
+const int dead_right = 30;
 
-const int swing_max = 135; // Maximum Swing Servo Position
-const int swing_min = 45;  // Minimum Swing Servo Position
-const int ext_max   = 180; // Mximum Extension Servo Position
-const int ext_min   = 45;  // Minimum Extension Servo Position
+const int swing_max = 135-10; // Maximum Swing Servo Position with buffer zone because while loops can exceed max positions before correcting
+const int swing_min = 45+10;  // Minimum Swing Servo Position
+const int ext_max   = 180-10; // Mximum Extension Servo Position
+const int ext_min   = 45+10;  // Minimum Extension Servo Position
 
 
 // VARIABLES
@@ -55,12 +55,14 @@ float extrr   = 0; // create variable position for right rear EXT position
 
 // These need to stay until the map gets better
 int swing;
+int oswing;
 int ext;
+int oext;
 int spos_PWM;
 
 int spd;    // Joystick Y position var - speed input
 int turn;   // Joystick X position var - turning input
-int adjspd;   // Servo speed Adjusted, int because map() outputs ints
+int adjspd=10;   // Servo speed Adjusted, int because map() outputs ints
 
 long int interval = 10000; // wait, will be overwritten
 
@@ -78,7 +80,8 @@ BLYNK_WRITE(V10) {
   int y = param[1].asInt(); 
   spd  = y-128;             // CENTER JOYSTICK AT 0,0
   turn = x-128;             // CENTER JOYSTICK AT 0,0
-  adjspd = map(spd, -128, 128, 20, 30);
+  //adjspd = map(spd, -128, 128, 20, 30);
+
 }
 
 
@@ -111,57 +114,84 @@ void setup()
 
 
 void servomove() // SERVO LOOP
+
+/* Servo Numbering Convention:
+ *  0 Left front swing
+ *  1 Left front extension
+ *  2 Right front swing
+ *  3 Right front extension
+ *  4 Left rear swing
+ *  5 Left rear extension
+ *  6 Right rear swing
+ *  7 Right rear extension
+ */
+
 {
 
-
-  
-  if (spd > dead_fwd){           //FORWARD MOTION
-    Serial.print("Forward");  
-      if (turn > dead_right){    // RIGHT TURN
-          Serial.print("Right");      
-          }
-      else if (turn < dead_left){// LEFT TURN
-          Serial.print("Left");
-          }
-      else {                     // STRAIGHT   
-      Serial.println("Straight");
-
-      // SERVO CONTROL SECTION
-//      if (swingmotion = true){
-      while (swing < swing_max){                          // STEP 
-        swing=swing+adjspd;
-               
+if (spd > dead_fwd){           //FORWARD MOTION
+  Serial.print("Forward");  
+      
+if (turn > dead_right){    // RIGHT TURN
+          Serial.print("Right");
+          
+          while (swing < swing_max){                          // STEP 
+        swing=swing+adjspd;                              // Driving swing function
+        oswing=oswing-adjspd;                            // Opposite driving swing function
                if (swing <= 90) {                        // Split EXT Servo into step chunks
                ext= swing+45;                            // EXT for step squence
-               
+               oext = 135-(oswing-90);
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
-//               swingrr = map(swing, 0, 180, 544, 2420);
-//               extrr   = map(ext,   0, 180, 544, 2420);
-//               pca.writeMicroseconds(2,swingrr);         // Swing servo position write to PCA
-//               pca.writeMicroseconds(3,extrr);           // Extension servo position write to PCA
-               
-               for (n=0; n<interval; n++);{}             // Delay loop
-               
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+                
+               for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 1");
+                }             
                }
                else {
                ext= 135-(swing-90);                      // EXT for step sequence  
-               
+               oext = oswing+45;
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
-               for (n=0; n<interval; n++);{}             // Delay loop
-               
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+ 
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 2");
+                }                           
                }
               
       }
-//      swingmotion != swingmotion;
-//      }
+
       while (swing > swing_min){                         // SWING
         swing=swing-adjspd;
                if (swing <= 90) {                        // Split EXT Servo into step chunks
@@ -170,29 +200,298 @@ void servomove() // SERVO LOOP
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
-//               swingrr = map(swing, 0, 180, 544, 2420);
-//               extrr   = map(ext,   0, 180, 544, 2420);
-//               pca.writeMicroseconds(2,swingrr);         // Swing servo position write to PCA
-//               pca.writeMicroseconds(3,extrr);           // Extension servo position write to PCA
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
                
-               for (n=0; n<interval; n++);{}             // Delay loop
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 1");
+                }             
                
                }
                else {
                ext= 135-(swing-90);                      // EXT for step sequence  
                
+               ext= 135-(swing-90);                      // EXT for swing sequence  
+               oext = oswing+45;
                //PCA Commands
                swinglf = map(swing, 0, 180, 544, 2420);
                extlf   = map(ext,   0, 180, 544, 2420);
-               pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
-               pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
-               for (n=0; n<interval; n++);{}             // Delay loop
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+             
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 2");
+                }                          
+               }
+      }      
+          }
+else if (turn < dead_left){// LEFT TURN
+          Serial.print("Left");
+          
+          while (swing < swing_max){                          // STEP 
+        swing=swing+adjspd;                              // Driving swing function
+        oswing=oswing-adjspd;                            // Opposite driving swing function
+               if (swing <= 90) {                        // Split EXT Servo into step chunks
+               ext= swing+45;                            // EXT for step squence
+               oext = 135-(oswing-90);
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+                
+               for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 1");
+                }             
+               }
+               else {
+               ext= 135-(swing-90);                      // EXT for step sequence  
+               oext = oswing+45;
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+ 
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 2");
+                }                           
+               }
+              
+      }
+
+      while (swing > swing_min){                         // SWING
+        swing=swing-adjspd;
+               if (swing <= 90) {                        // Split EXT Servo into step chunks
+               ext= swing+45;                            // EXT for step squence
+               
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+               
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 1");
+                }             
                
                }
+               else {
+               ext= 135-(swing-90);                      // EXT for step sequence  
+               
+               ext= 135-(swing-90);                      // EXT for swing sequence  
+               oext = oswing+45;
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(2,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(3,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+             
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 2");
+                }                          
+               }
+      }
+          }
+else {                     // STRAIGHT   
+      Serial.println("Straight");
+
+      // SERVO CONTROL SECTION
+
+      while (swing < swing_max){                          // STEP 
+        swing=swing+adjspd;                              // Driving swing function
+        oswing=oswing-adjspd;                            // Opposite driving swing function
+               if (swing <= 90) {                        // Split EXT Servo into step chunks
+               ext= swing+45;                            // EXT for step squence
+               oext = 135-(oswing-90);
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+                
+               for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 1");
+                }             
+               }
+               else {
+               ext= 135-(swing-90);                      // EXT for step sequence  
+               oext = oswing+45;
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+ 
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Step sequence 2");
+                }                           
+               }
+              
+      }
+
+      while (swing > swing_min){                         // SWING
+        swing=swing-adjspd;
+               if (swing <= 90) {                        // Split EXT Servo into step chunks
+               ext= swing+45;                            // EXT for step squence
+               
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+               
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 1");
+                }             
+               
+               }
+               else {
+               ext= 135-(swing-90);                      // EXT for step sequence  
+               
+               ext= 135-(swing-90);                      // EXT for swing sequence  
+               oext = oswing+45;
+               //PCA Commands
+               swinglf = map(swing, 0, 180, 544, 2420);
+               extlf   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swinglf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extlf);           // Extension servo position write to PCA
+               swingrr = map(swing, 0, 180, 544, 2420);
+               extrr   = map(ext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(6,swingrr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(7,extrr);           // Extension servo position write to PCA
+               swingrf = map(oswing, 0, 180, 544, 2420);
+               extrf   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(0,swingrf);         // Swing servo position write to PCA
+                pca.writeMicroseconds(1,extrf);           // Extension servo position write to PCA
+               swinglr = map(oswing, 0, 180, 544, 2420);
+               extlr   = map(oext,   0, 180, 544, 2420);
+                pca.writeMicroseconds(4,swinglr);         // Swing servo position write to PCA
+                pca.writeMicroseconds(5,extlr);           // Extension servo position write to PCA
+
+             
+                for (n=0; n<interval; n++);{// Delay loop
+                Serial.println("Swing sequence 2");
+                }                          
+               }
       } 
-//      swingmotion != swingmotion;
       
     }
     }
