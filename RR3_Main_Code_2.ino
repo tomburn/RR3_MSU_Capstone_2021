@@ -23,8 +23,8 @@ char ssid[] = SECRET_SSID;        // your network SSID (name)
 // BREAKOUT BOARD
 #define nbPCAServo 8 // The number of servos
 //Parameters
-#define min_imp  150 // This is the 'minimum' pulse length count (out of 4096)
-#define max_imp  600 // This is the 'maximum' pulse length count (out of 4096)
+#define min_imp  150 // This is the 'minimum' pulse length count (out of 4096) 150
+#define max_imp  600 // This is the 'maximum' pulse length count (out of 4096) 600
 #define USMIN  600 // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
 #define USMAX  2400 // This is the rounded 'maximum' microsecond length based on the maximum pulse of 600
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
@@ -40,26 +40,26 @@ const int dead_right = 30;
 
 const int swing_max = 135; // Maximum Swing Servo Position with buffer zone because while loops can exceed max positions before correcting
 const int swing_min = 45;  // Minimum Swing Servo Position
-const int ext_max   = 180; // Mximum Extension Servo Position
+const int ext_max   = 135; // Mximum Extension Servo Position
 const int ext_min   = 45;  // Minimum Extension Servo Position
 
 const int turn_swing_max = 135;
 const int turn_swing_min = 45;
-const int turn_ext_max = 180; 
-const int turn_ext_min = 45;
+const int turn_ext_max   = 135; 
+const int turn_ext_min   = 45;
 
 
 // VARIABLES
 int i = 0; // Servo Index
 // SPECIFIC TO REPLACE GLOBAL 
-float swinglf = 0; // create variable position for left front LEG position
-float extlf   = 0; // create variable position for left front EXT position
-float swingrf = 0; // create variable position for right front LEG position
-float extrf   = 0; // create variable position for right front EXT position
-float swinglr = 0; // create variable position for left rear LEG position
-float extlr   = 0; // create variable position for left rear EXT position
-float swingrr = 0; // create variable position for right rear LEG position
-float extrr   = 0; // create variable position for right rear EXT position
+float swinglf ; // create variable position for left front LEG position
+float extlf   ; // create variable position for left front EXT position
+float swingrf ; // create variable position for right front LEG position
+float extrf   ; // create variable position for right front EXT position
+float swinglr ; // create variable position for left rear LEG position
+float extlr   ; // create variable position for left rear EXT position
+float swingrr ; // create variable position for right rear LEG position
+float extrr   ; // create variable position for right rear EXT position
 
 // These need to stay until the map gets better
 int swing;
@@ -73,7 +73,7 @@ int turn;   // Joystick X position var - turning input
 
 int adjspd = 20;   // Servo speed Adjusted, int because map() outputs ints
 
-long int interval = 500; // wait time in millis, will be overwritten
+long int interval = 100; // wait time in millis, will be overwritten
 long int newmillis;
 long int oldmillis;
 
@@ -86,7 +86,7 @@ BLYNK_WRITE(V10) {  // BLYNK CODE
   int y = param[1].asInt(); 
   spd  = y-128;             // CENTER JOYSTICK AT 0,0
   turn = x-128;             // CENTER JOYSTICK AT 0,0
-  //adjspd = map(spd, 0, 128, 0, 30);
+  adjspd = map(spd, 0, 128, 0, 20);
 
 }
 
@@ -104,7 +104,7 @@ void setup()
   pca.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~60 Hz updates digital are 300~500???
   
   
-  spos_PWM = map(spos, 0, 180, min_imp, max_imp); // Set all servos to start position
+  spos_PWM = map(90, 0, 180, min_imp, max_imp); // Set all servos to start position
   
   for (i=0; i < nbPCAServo; i++){
                //PCA Commands
@@ -115,14 +115,14 @@ void setup()
             //   pca.setPin(i,0,true);          // Deactivate Pin i
             newmillis = millis();
             oldmillis=millis();
-            while (newmillis-oldmillis < interval){
+            while (newmillis-oldmillis < 1000){
                 newmillis=millis();
                }
   }
   // Delay
             newmillis = millis();
             oldmillis=millis();
-            while (newmillis-oldmillis < interval){
+            while (newmillis-oldmillis < 1000){
                newmillis=millis();
             }
 }
@@ -146,16 +146,16 @@ void servomove() // SERVO LOOP
 
 {
 
-if (spd > dead_fwd){           //FORWARD MOTION
+if (spd > dead_fwd){                                     //FORWARD MOTION
   Serial.print("Forward");  
       
-if (turn > dead_right){        // RIGHT TURN
+if (turn > dead_right){                                  // RIGHT TURN
           Serial.print("Right");
           
-        while (swing < turn_swing_max){                          // STEP 
+        while (swing < turn_swing_max){                  // STEP 
         swing=swing+adjspd;                              // Driving swing function
         oswing=oswing-adjspd;                            // Opposite driving swing function
-               if (swing <= 90) {                        // Split EXT Servo into step chunks
+              if (swing <= 90) {                         // Split EXT Servo into step chunks
                ext= swing+45;                            // EXT for step squence
                oext = 135-(oswing-90);
                //PCA Commands
@@ -470,8 +470,8 @@ else {                     // STRAIGHT
                 pca.setPWM(7, 0, extrr);           // Extension servo position write to PCA
                swingrf = map(oswing, 0, 180, min_imp, max_imp);
                extrf   = map(oext,   0, 180, min_imp, max_imp);
-                pca.setPWM(0, 0, swingrf);         // Swing servo position write to PCA
-                pca.setPWM(1, 0, extrf);           // Extension servo position write to PCA
+                pca.setPWM(2, 0, swingrf);         // Swing servo position write to PCA
+                pca.setPWM(3, 0, extrf);           // Extension servo position write to PCA
                swinglr = map(oswing, 0, 180, min_imp, max_imp);
                extlr   = map(oext,   0, 180, min_imp, max_imp);
                 pca.setPWM(4, 0, swinglr);         // Swing servo position write to PCA
@@ -496,8 +496,8 @@ else {                     // STRAIGHT
                 pca.setPWM(7, 0, extrr);           // Extension servo position write to PCA
                swingrf = map(oswing, 0, 180, min_imp, max_imp);
                extrf   = map(oext,   0, 180, min_imp, max_imp);
-                pca.setPWM(0, 0, swingrf);         // Swing servo position write to PCA
-                pca.setPWM(1, 0, extrf);           // Extension servo position write to PCA
+                pca.setPWM(2, 0, swingrf);         // Swing servo position write to PCA
+                pca.setPWM(3, 0, extrf);           // Extension servo position write to PCA
                swinglr = map(oswing, 0, 180, min_imp, max_imp);
                extlr   = map(oext,   0, 180, min_imp, max_imp);
                 pca.setPWM(4, 0, swinglr);         // Swing servo position write to PCA
@@ -533,8 +533,8 @@ else {                     // STRAIGHT
                 pca.setPWM(7, 0, extrr);           // Extension servo position write to PCA
                swingrf = map(oswing, 0, 180, min_imp, max_imp);
                extrf   = map(oext,   0, 180, min_imp, max_imp);
-                pca.setPWM(0, 0, swingrf);         // Swing servo position write to PCA
-                pca.setPWM(1, 0, extrf);           // Extension servo position write to PCA
+                pca.setPWM(2, 0, swingrf);         // Swing servo position write to PCA
+                pca.setPWM(3, 0, extrf);           // Extension servo position write to PCA
                swinglr = map(oswing, 0, 180, min_imp, max_imp);
                extlr   = map(oext,   0, 180, min_imp, max_imp);
                 pca.setPWM(4, 0, swinglr);         // Swing servo position write to PCA
@@ -562,8 +562,8 @@ else {                     // STRAIGHT
                 pca.setPWM(7, 0,extrr);           // Extension servo position write to PCA
                swingrf = map(oswing, 0, 180, min_imp, max_imp);
                extrf   = map(oext,   0, 180, min_imp, max_imp);
-                pca.setPWM(0, 0, swingrf);         // Swing servo position write to PCA
-                pca.writeMicroseconds(1,extrf);           // Extension servo position write to PCA
+                pca.setPWM(2, 0, swingrf);         // Swing servo position write to PCA
+                pca.setPWM(3, 0, extrf);           // Extension servo position write to PCA
                swinglr = map(oswing, 0, 180, min_imp, max_imp);
                extlr   = map(oext,   0, 180, min_imp, max_imp);
                 pca.setPWM(4, 0, swinglr);         // Swing servo position write to PCA
@@ -588,7 +588,7 @@ else {                     // STRAIGHT
  
   
   else if (spd < dead_back) {                   // BACKWARD MOTION
-   Serial.print("STOP");
+   Serial.println("STOP");
 
 
   
