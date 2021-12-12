@@ -1,7 +1,7 @@
 # RR3
 Code for Robot Rodeo 3 Capstone Project
 
-This code was developed by a series of copy paste commands from examples posted elsewhere. Appropriate citations will be added
+Thanks to those who developed the Blynk, Adafruit, and Arduino libraries, and the examples found therein. 
 
 This repository was organized Nov.2.2021 11 weeks into the semester. Forgive my naming conventions.
 
